@@ -1,3 +1,33 @@
+# Parameters
+# 1. jobs
+#   Mandatory.
+#   Contains a list of all tests that needs to be run.
+#   Sample:
+#   ```
+#   - template: templates/uitest_jobs.yml
+#   parameters:
+#     jobs:
+#     - test: "Smoke"
+#       tags: "--tags=smoke"
+#     - test: "Test"
+#       tags: "--tags=test"
+#     - test: "Terminal"
+#       tags: "--tags=terminal"
+#   ```
+#   Based on the sample, we're running 3 tests with the names `Smoke`, `Test`, and `Terminal`.
+#   The tags inside each test contains the arguments that needs to be passd into behave.
+#   Please pass in just the `tags` arguments.
+#   Multiple tag values can be passed in as follows:
+#       tags: "--tags=debug --tags=remote"
+#   More information on --tags argument for behave can be found here:
+#       * https://behave.readthedocs.io/en/latest/tutorial.html#controlling-things-with-tags
+#       * https://behave.readthedocs.io/en/latest/tag_expressions.html
+# 2. pythonVersions
+#   Do not pass.
+#   Defines the versions of Pythons versions we run tests against.
+#   We use this to build a list of python versions as a list instead of having to hardcode them.
+#   This way we just use a simple for loop and run jobs for each OS and each Python version.
+
 parameters:
   jobs: []
   pythonVersions: [
@@ -37,28 +67,20 @@ jobs:
           ${{ format('Mac{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "macos-10.13"
-            Tags: ${{ job.tags }}
-            ExcludeTags: ${{ py.excludeTags }}
-            AgentJobName: ${{ format('Mac{0}{1}', py.displayName, job.test) }}
+            Tags: ${{ format('{0} {1} --tags=~@win --tags=~@linux', job.tags, py.excludeTags) }}
 
           ${{ format('Win{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "vs2017-win2016"
-            Tags: ${{ job.tags }}
-            ExcludeTags: ${{ py.excludeTags }}
-            AgentJobName: ${{ format('Mac{0}{1}', py.displayName, job.test) }}
+            Tags: ${{ format('{0} {1} --tags=~@mac --tags=~@linux', job.tags, py.excludeTags) }}
 
           ${{ format('Linux{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "ubuntu-16.04"
-            Tags: ${{ job.tags }}
-            ExcludeTags: ${{ py.excludeTags }}
-            AgentJobName: ${{ format('Mac{0}{1}', py.displayName, job.test) }}
+            Tags: ${{ format('{0} {1} --tags=~@mac --tags=~@win', job.tags, py.excludeTags) }}
 
   pool:
     vmImage: $(VMImageName)
 
   steps:
     - template: uitest_phases.yml
-      parameters:
-        excludeTags: $(ExcludeTags)

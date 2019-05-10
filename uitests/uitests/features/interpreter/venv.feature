@@ -1,4 +1,4 @@
-@terminal @venv @python3
+@terminal @terminal.venv @python3
 Feature: Terminal (venv)
     Scenario: Interpreter display name contains the name of the venv folder
         Given a venv with the name "venv 1" is created

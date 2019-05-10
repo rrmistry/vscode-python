@@ -30,20 +30,20 @@ jobs:
     matrix:
       ${{ each job in parameters.jobs }}:
         ${{ each py in parameters.pythonVersions }}:
-          ${{ format('Mac{0}{1}', py, job.test) }}:
+          ${{ format('Mac{0}{1}', py.version, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "macos-10.13"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}
 
-          ${{ format('Win{0}{1}', py, job.test) }}:
-            PythonVersion: ${{ py }}
+          ${{ format('Win{0}{1}', py.version, job.test) }}:
+            PythonVersion: ${{ py.version }}
             VMImageName: "vs2017-win2016"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}
 
-          ${{ format('Linux{0}{1}', py, job.test) }}:
-            PythonVersion: ${{ py }}
+          ${{ format('Linux{0}{1}', py.version, job.test) }}:
+            PythonVersion: ${{ py.version }}
             VMImageName: "ubuntu-16.04"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}

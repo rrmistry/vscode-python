@@ -9,8 +9,8 @@ jobs:
   strategy:
     matrix:
       ${{ each job in parameters.jobs }}:
-        ${{ job.test }}:
-          ${{ each py in parameters.pythonVersions }}:
+        ${{ each py in parameters.pythonVersions }}:
+          ${{ job.test }}:
             PythonVersion: ${{ py }}
             VMImageName: "macos-10.13"
             Tags: ${{ job.tags }}

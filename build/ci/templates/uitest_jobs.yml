@@ -1,6 +1,23 @@
 parameters:
   jobs: []
-  pythonVersions: ["3.7", "3.6", "3.5", "2.7"]
+  pythonVersions: [
+      {
+          version:"3.7",
+          excludeTags:"--tags=~python3.6 --tags=~python3.5 --tags=~python2"
+      },
+      {
+          version:"3.6",
+          excludeTags:"--tags=~python3.7 --tags=~python3.5 --tags=~python2"
+      },
+      {
+          version:"3.5",
+          excludeTags:"--tags=~python3.7 --tags=~python3.6 --tags=~python2"
+      },
+      {
+          version:"2.7",
+          excludeTags:"--tags=~python3.7 --tags=~python3.5 --tags=~python3"
+      }
+    ]
 
 
 jobs:
@@ -14,26 +31,28 @@ jobs:
       ${{ each job in parameters.jobs }}:
         ${{ each py in parameters.pythonVersions }}:
           ${{ format('Mac{0}{1}', py, job.test) }}:
-            PythonVersion: ${{ py }}
+            PythonVersion: ${{ py.version }}
             VMImageName: "macos-10.13"
             Tags: ${{ job.tags }}
-            Test: true
+            ExcludeTags: ${{ py.excludeTags }}
 
           ${{ format('Win{0}{1}', py, job.test) }}:
             PythonVersion: ${{ py }}
             VMImageName: "vs2017-win2016"
             Tags: ${{ job.tags }}
-            Test: true
-
+            ExcludeTags: ${{ py.excludeTags }}
 
           ${{ format('Linux{0}{1}', py, job.test) }}:
             PythonVersion: ${{ py }}
             VMImageName: "ubuntu-16.04"
             Tags: ${{ job.tags }}
-            Test: true
+            ExcludeTags: ${{ py.excludeTags }}
 
   pool:
     vmImage: $(VMImageName)
 
   steps:
     - template: uitest_phases.yml
+      parameters:
+        tags:
+        - exclude: $(ExcludeTags)

@@ -22,6 +22,12 @@ variables:
   VSC_PYTHON_FORCE_LOGGING: true # Enable this to turn on console output for the logger
 
 jobs:
+- template: templates/uitest_jobs.yml
+  parameters:
+    jobs:
+    - test: "WOW"
+    - test: "TWO"
+
 - job: Compile
   variables:
     Build: false

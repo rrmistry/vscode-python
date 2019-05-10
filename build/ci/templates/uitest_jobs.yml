@@ -75,20 +75,20 @@ jobs:
     matrix:
       ${{ each job in parameters.jobs }}:
         ${{ each py in parameters.pythonVersions }}:
-          ${{ if not(contains(parameters.ignorePythonVersions, py.version)) }}:
-            ${{ if not(contains(parameters.ignoreOperatingSystems, 'mac')) }}:
-              ${{ format('Mac{0}{1}{2}{3}', py.displayName, job.test, parameters.ignorePythonVersions, parameters.ignoreOperatingSystems) }}:
+          ${{ if not(contains(coalesce(job.ignorePythonVersions, ''), py.version)) }}:
+            ${{ if not(contains(coalesce(job.ignoreOperatingSystems, ''), 'mac')) }}:
+              ${{ format('Mac{0}{1}{2}', py.displayName, job.test, job.ignorePythonVersions) }}:
                 PythonVersion: ${{ py.version }}
                 VMImageName: "macos-10.13"
                 Tags: ${{ format('{0} {1} --tags=~@win --tags=~@linux', job.tags, py.excludeTags) }}
 
-            ${{ if not(contains(parameters.ignoreOperatingSystems, 'win')) }}:
+            ${{ if not(contains(coalesce(job.ignoreOperatingSystems, ''), 'win')) }}:
               ${{ format('Win{0}{1}', py.displayName, job.test) }}:
                 PythonVersion: ${{ py.version }}
                 VMImageName: "vs2017-win2016"
                 Tags: ${{ format('{0} {1} --tags=~@mac --tags=~@linux', job.tags, py.excludeTags) }}
 
-            ${{ if not(contains(parameters.ignoreOperatingSystems, 'linux')) }}:
+            ${{ if not(contains(coalesce(job.ignoreOperatingSystems, ''), 'linux')) }}:
               ${{ format('Linux{0}{1}', py.displayName, job.test) }}:
                 PythonVersion: ${{ py.version }}
                 VMImageName: "ubuntu-16.04"

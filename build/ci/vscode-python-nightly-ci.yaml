@@ -5,7 +5,7 @@ name: '$(Year:yyyy).$(Month).0.$(BuildID)-ci'
 pr:
   autoCancel: true
   branches:
-    include: ["master", "release"]
+    include: ["master", "release", "pyui"]
   paths:
     exclude: ["/news/1 Enhancements", "/news/2 Fixes", "/news/3 Code Health", "/.vscode"]
 

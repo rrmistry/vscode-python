@@ -163,37 +163,56 @@ def empty_directory(dir):
                 pass
 
 
-def wait_for_python_env(cwd, path, timeout=30):
-    start_time = time.time()
+# def wait_for_python_env(cwd, path, timeout=30):
+#     start_time = time.time()
+#     python_exec = _get_python_executable(path)
+#     while time.time() - start_time < timeout:
+#         try:
+#             subprocess.run(
+#                 [python_exec, "--version"], check=True, stdout=subprocess.PIPE, cwd=cwd
+#             ).stdout
+#             return
+#         except Exception as ex:
+#             print(ex)
+#             pass
+#     raise SystemError(f"Virtual Env not detected after {timeout}s")
+
+
+@retry(Exception, tries=30)
+def wait_for_python_env(cwd, path):
     python_exec = _get_python_executable(path)
-    while time.time() - start_time < timeout:
-        try:
-            subprocess.run(
-                [python_exec, "--version"], check=True, stdout=subprocess.PIPE, cwd=cwd
-            ).stdout
-            return
-        except Exception as ex:
-            print(ex)
-            pass
-    raise SystemError(f"Virtual Env not detected after {timeout}s")
+    subprocess.run(
+        [python_exec, "--version"], check=True, stdout=subprocess.PIPE, cwd=cwd
+    ).stdout
 
 
-def wait_for_pipenv(cwd, timeout=30):
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        try:
-            subprocess.run(
-                ["pipenv", "--py"],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                cwd=cwd,
-            )
-            return
-        except Exception as ex:
-            print(ex)
-            pass
-    raise SystemError(f"PipEnv not detected after {timeout}s")
+# def wait_for_pipenv(cwd, timeout=30):
+#     start_time = time.time()
+#     while time.time() - start_time < timeout:
+#         try:
+#             subprocess.run(
+#                 ["pipenv", "--py"],
+#                 check=True,
+#                 stdout=subprocess.DEVNULL,
+#                 stderr=subprocess.DEVNULL,
+#                 cwd=cwd,
+#             )
+#             return
+#         except Exception as ex:
+#             print(ex)
+#             pass
+#     raise SystemError(f"PipEnv not detected after {timeout}s")
+
+
+@retry(Exception, tries=30)
+def wait_for_pipenv(cwd):
+    subprocess.run(
+        ["pipenv", "--py"],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        cwd=cwd,
+    )
 
 
 def _get_python_executable(path):

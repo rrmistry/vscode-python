@@ -5,6 +5,9 @@ parameters:
 
 jobs:
 - job: UITest
+  dependsOn:
+    - Compile
+    - Build
   timeoutInMinutes: 90
   strategy:
     matrix:

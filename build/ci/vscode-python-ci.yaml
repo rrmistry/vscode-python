@@ -24,8 +24,10 @@ jobs:
 - template: templates/uitest_jobs.yml
   parameters:
     jobs:
-    - test: "WOW"
-    - test: "TWO"
+    - test: "Smoke"
+      tags: "--tags=smoke"
+    - test: "Test"
+      tags: "--tags=test"
 
 - job: Compile
   variables:

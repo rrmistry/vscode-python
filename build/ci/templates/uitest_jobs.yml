@@ -10,7 +10,7 @@ jobs:
         ${{ job.test }}:
           PythonVersion: "3.7"
           VMImageName: "macos-10.13"
-          Tags: "--tags=smoke"
+          Tags: ${{ job.tags }}
           Test: true
 
   pool:

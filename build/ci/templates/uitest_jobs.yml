@@ -77,7 +77,7 @@ jobs:
         ${{ each py in parameters.pythonVersions }}:
           ${{ if not(contains(coalesce(job.ignorePythonVersions, ''), py.version)) }}:
             ${{ if not(contains(coalesce(job.ignoreOperatingSystems, ''), 'mac')) }}:
-              ${{ format('Mac{0}{1}{2}', py.displayName, job.test, job.ignorePythonVersions) }}:
+              ${{ format('Mac{0}{1}', py.displayName, job.test) }}:
                 PythonVersion: ${{ py.version }}
                 VMImageName: "macos-10.13"
                 Tags: ${{ format('{0} {1} --tags=~@win --tags=~@linux', job.tags, py.excludeTags) }}

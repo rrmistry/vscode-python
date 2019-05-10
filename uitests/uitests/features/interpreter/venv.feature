@@ -2,6 +2,7 @@
 @https://github.com/DonJayamanne/vscode-python-uitests/terminal/execution
 Feature: Terminal (venv)
     Scenario: Interpreter display name contains the name of the venv folder
+        When In Windows, I update the workspace setting "terminal.integrated.shell.windows" with the value "C:\\Windows\\System32\\cmd.exe"
         Given a venv with the name "venv 1" is created
         When In Mac, I update the workspace setting "python.pythonPath" with the value "venv 1/bin/python"
         When In Linux, I update the workspace setting "python.pythonPath" with the value "venv 1/bin/python"

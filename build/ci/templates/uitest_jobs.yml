@@ -9,7 +9,7 @@ jobs:
   timeoutInMinutes: 90
   strategy:
     matrix:
-    ${{ each job in parameters.jobs }}:
+    - ${{ each job in parameters.jobs }}:
       ${{ job.test }}:
         PythonVersion: "3.7"
         VMImageName: "macos-10.13"

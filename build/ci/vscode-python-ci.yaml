@@ -41,9 +41,9 @@ jobs:
   parameters:
     jobs:
     - test: "Smoke"
-      tags: "--tags=smoke"
+      tags: "--tags=@smoke"
     - test: "Test"
-      tags: "--tags=test"
+      tags: "--tags=@test"
     - test: "Terminal"
-      tags: "--tags=terminal"
+      tags: "--tags=@terminal --tags=~@terminal.pipenv"
 

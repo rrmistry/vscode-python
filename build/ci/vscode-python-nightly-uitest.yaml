@@ -1,17 +1,8 @@
 name: '$(Year:yyyy).$(Month).0.$(BuildID)-nightly-uitest'
 
-# PR Validation build.
-# Notes: Only trigger a PR build for master and release, and skip build/rebuild
-#        on changes in the news and .vscode folders.
-pr:
-  autoCancel: true
-  branches:
-    include: ["master", "release"]
-  paths:
-    exclude: ["/news/1 Enhancements", "/news/2 Fixes", "/news/3 Code Health", "/.vscode"]
-
-# Not the CI build for merges to master and release.
 trigger: none
+pr: none
+
 
 # Variables that are available for the entire pipeline.
 variables:

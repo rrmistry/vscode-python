@@ -54,5 +54,4 @@ jobs:
   steps:
     - template: uitest_phases.yml
       parameters:
-        tags:
-        - exclude: $(ExcludeTags)
+        excludeTags: $(ExcludeTags)

@@ -1,3 +1,6 @@
+parameters:
+  excludeTags: ""
+
 steps:
     - bash: |
           printenv
@@ -100,7 +103,7 @@ steps:
       displayName: "Download & Install UI Test Dependencies"
       condition: succeeded()
 
-    - script: python uitests test --embed_screenshots -- --format=pretty $(Tags) -D python_path=$(CI_PYTHON_PATH)
+    - script: python uitests test --embed_screenshots -- --format=pretty $(Tags) ${{ parameters.excludeTags }} -D python_path=$(CI_PYTHON_PATH)
       env:
           DISPLAY: :10
           AgentJobName: $(Agent.JobName)

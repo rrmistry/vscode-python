@@ -3,19 +3,19 @@ parameters:
   pythonVersions: [
       {
           "version":"3.7",
-          "excludeTags":"--tags=~python3.6 --tags=~python3.5 --tags=~python2"
+          "excludeTags":"--tags=~@python3.6 --tags=~@python3.5 --tags=~@python2"
       },
       {
           "version":"3.6",
-          "excludeTags":"--tags=~python3.7 --tags=~python3.5 --tags=~python2"
+          "excludeTags":"--tags=~@python3.7 --tags=~@python3.5 --tags=~@python2"
       },
       {
           "version":"3.5",
-          "excludeTags":"--tags=~python3.7 --tags=~python3.6 --tags=~python2"
+          "excludeTags":"--tags=~@python3.7 --tags=~@python3.6 --tags=~@python2"
       },
       {
           "version":"2.7",
-          "excludeTags":"--tags=~python3.7 --tags=~python3.5 --tags=~python3"
+          "excludeTags":"--tags=~@python3.7 --tags=~@python3.5 --tags=~@python3"
       }
     ]
 

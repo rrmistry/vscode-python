@@ -1,4 +1,7 @@
 # Tags
+* @wip
+    * Used only for debugging purposes.
+    * When debugging in VSC, only features/scenarios with @wip tag will be executed.
 * @https://github.com/xxx/yyy.git
     * The conents of the above repo will be used as the contents of the workspace folder.
     * Note: assume the tag is `@https://github.com/DonJayamanne/pyvscSmokeTesting.git`

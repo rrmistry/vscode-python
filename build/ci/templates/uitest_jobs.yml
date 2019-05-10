@@ -22,7 +22,16 @@
 #   More information on --tags argument for behave can be found here:
 #       * https://behave.readthedocs.io/en/latest/tutorial.html#controlling-things-with-tags
 #       * https://behave.readthedocs.io/en/latest/tag_expressions.html
-# 2. pythonVersions
+# 2. ignorePythonVersions
+#   Comma delimited list of Python versions not to be tested against.
+#   E.g. = 3.7,3.6
+#   Possible values 3.7, 3.6, 3.5, 3.5, 2.7
+#   Any OS provided in this string will not be tested against.
+# 3. ignoreOperatingSystems
+#   Comma delimited list of OS not to be tested against.
+#   E.g. = win, linux
+#   Possible values = mac, win linux
+# 4. pythonVersions
 #   Do not pass.
 #   Defines the versions of Pythons versions we run tests against.
 #   We use this to build a list of python versions as a list instead of having to hardcode them.
@@ -30,6 +39,8 @@
 
 parameters:
   jobs: []
+  ignorePythonVersions: ""
+  ignoreOperatingSystems: ""
   pythonVersions: [
       {
           "version": "3.7",
@@ -56,28 +67,32 @@ parameters:
 
 jobs:
 - job: UITest
-  dependsOn:
-    - Compile
-    - Build
+#   dependsOn:
+#     - Compile
+#     - Build
   timeoutInMinutes: 90
   strategy:
     matrix:
       ${{ each job in parameters.jobs }}:
         ${{ each py in parameters.pythonVersions }}:
-          ${{ format('Mac{0}{1}', py.displayName, job.test) }}:
-            PythonVersion: ${{ py.version }}
-            VMImageName: "macos-10.13"
-            Tags: ${{ format('{0} {1} --tags=~@win --tags=~@linux', job.tags, py.excludeTags) }}
+          ${{ if not(contains(coalesce(parameters.ignorePythonVersions, ''), py.version)) }}:
+            ${{ if not(contains(coalesce(parameters.ignoreOperatingSystems, ''), 'mac')) }}:
+              ${{ format('Mac{0}{1}', py.displayName, job.test) }}:
+                PythonVersion: ${{ py.version }}
+                VMImageName: "macos-10.13"
+                Tags: ${{ format('{0} {1} --tags=~@win --tags=~@linux', job.tags, py.excludeTags) }}
 
-          ${{ format('Win{0}{1}', py.displayName, job.test) }}:
-            PythonVersion: ${{ py.version }}
-            VMImageName: "vs2017-win2016"
-            Tags: ${{ format('{0} {1} --tags=~@mac --tags=~@linux', job.tags, py.excludeTags) }}
+            ${{ if not(contains(coalesce(parameters.ignoreOperatingSystems, ''), 'win')) }}:
+              ${{ format('Win{0}{1}', py.displayName, job.test) }}:
+                PythonVersion: ${{ py.version }}
+                VMImageName: "vs2017-win2016"
+                Tags: ${{ format('{0} {1} --tags=~@mac --tags=~@linux', job.tags, py.excludeTags) }}
 
-          ${{ format('Linux{0}{1}', py.displayName, job.test) }}:
-            PythonVersion: ${{ py.version }}
-            VMImageName: "ubuntu-16.04"
-            Tags: ${{ format('{0} {1} --tags=~@mac --tags=~@win', job.tags, py.excludeTags) }}
+            ${{ if not(contains(coalesce(parameters.ignoreOperatingSystems, ''), 'linux')) }}:
+              ${{ format('Linux{0}{1}', py.displayName, job.test) }}:
+                PythonVersion: ${{ py.version }}
+                VMImageName: "ubuntu-16.04"
+                Tags: ${{ format('{0} {1} --tags=~@mac --tags=~@win', job.tags, py.excludeTags) }}
 
   pool:
     vmImage: $(VMImageName)

@@ -10,7 +10,7 @@ jobs:
     matrix:
       ${{ each job in parameters.jobs }}:
         ${{ each py in parameters.pythonVersions }}:
-          ${{ job.test }}:
+          ${{ format('{0}{1}', job.test, py) }}:
             PythonVersion: ${{ py }}
             VMImageName: "macos-10.13"
             Tags: ${{ job.tags }}

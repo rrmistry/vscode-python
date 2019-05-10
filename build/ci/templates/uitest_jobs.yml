@@ -6,12 +6,12 @@ jobs:
   timeoutInMinutes: 90
   strategy:
     matrix:
-  ${{ each job in parameters.jobs }}:
-      ${{ job.test }}:
-        PythonVersion: "3.7"
-        VMImageName: "macos-10.13"
-        Tags: "--tags=smoke"
-        Test: true
+      ${{ each job in parameters.jobs }}:
+        ${{ job.test }}:
+          PythonVersion: "3.7"
+          VMImageName: "macos-10.13"
+          Tags: "--tags=smoke"
+          Test: true
 
   pool:
     vmImage: $(VMImageName)

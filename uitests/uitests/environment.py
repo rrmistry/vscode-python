@@ -19,6 +19,7 @@ def parse_number(text):
 
 
 behave.register_type(Number=parse_number)
+feature_workspace_folder = None
 
 
 def before_all(context):
@@ -46,6 +47,8 @@ def before_feature(context, feature):
         tag for tag in feature.tags if tag.lower().startswith("https://github.com/")
     ]
     uitests.vscode.startup.setup_workspace(context, repo[0] if repo else None)
+    global feature_workspace_folder
+    feature_workspace_folder = context.options.workspace_folder
 
     # On windows, always reload, as we'll have a new worksapce folder for every feature.
     # If we have a repo, then we might have a new workspace folder, so just reload.
@@ -60,6 +63,7 @@ def before_scenario(context, scenario):
     # Note, its possible we have a new driver instance due to reloading of VSC.
     context.driver = uitests.vscode.startup.CONTEXT["driver"]
     context.options = uitests.vscode.application.get_options(**context.config.userdata)
+    context.options.workspace_folder = feature_workspace_folder
 
     # Restore python.pythonPath in user & workspace settings.
     settings_json = os.path.join(context.options.user_dir, "User", "settings.json")

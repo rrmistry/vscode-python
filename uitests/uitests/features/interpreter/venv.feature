@@ -1,4 +1,5 @@
 @terminal @terminal.venv @python3
+@https://github.com/DonJayamanne/vscode-python-uitests/terminal/execution
 Feature: Terminal (venv)
     Scenario: Interpreter display name contains the name of the venv folder
         Given a venv with the name "venv 1" is created
@@ -33,16 +34,10 @@ Feature: Terminal (venv)
 
     @preserve.workspace
     Scenario: Environment is not activated in the Terminal
-        Given a file named "run_in_terminal.py" is created with the following contents
-            """
-            import sys
-
-            open("log.log", "w").write(sys.executable)
-            """
         When In Mac, I update the workspace setting "python.pythonPath" with the value "venv 1/bin/python"
         When In Linux, I update the workspace setting "python.pythonPath" with the value "venv 1/bin/python"
         When In Windows, I update the workspace setting "python.pythonPath" with the value "venv 1/Scripts/python.exe"
-        Given the file "run_in_terminal.py" is open
+        Given the file "write_pyPath_in_log.py" is open
         And a file named "log.log" does not exist
         And the workspace setting "python.terminal.activateEnvironment" is disabled
         And a terminal is opened
@@ -54,16 +49,10 @@ Feature: Terminal (venv)
 
     @preserve.workspace
     Scenario: Environment is activated in the Terminal
-        Given a file named "run_in_terminal.py" is created with the following contents
-            """
-            import sys
-
-            open("log.log", "w").write(sys.executable)
-            """
         When In Mac, I update the workspace setting "python.pythonPath" with the value "venv 1/bin/python"
         When In Linux, I update the workspace setting "python.pythonPath" with the value "venv 1/bin/python"
         When In Windows, I update the workspace setting "python.pythonPath" with the value "venv 1/Scripts/python.exe"
-        Given the file "run_in_terminal.py" is open
+        Given the file "write_pyPath_in_log.py" is open
         And a file named "log.log" does not exist
         And the workspace setting "python.terminal.activateEnvironment" is enabled
         And a terminal is opened

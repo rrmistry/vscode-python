@@ -195,7 +195,7 @@
                 "test",
                 "--",
                 "--format",
-                "pretty",
+                "progress3",
                 "--tags=wip"
             ],
             "justMyCode": false,

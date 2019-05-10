@@ -17,4 +17,4 @@ jobs:
     vmImage: $(VMImageName)
 
   steps:
-    - template: templates/uitest_phases.yml
+    - template: uitest_phases.yml

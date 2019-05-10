@@ -1,15 +1,17 @@
 name: '$(Year:yyyy).$(Month).0.$(BuildID)-ci'
-# CI build.
-# Notes: Only trigger a commit for master and release, and skip build/rebuild
+
+# PR Validation build.
+# Notes: Only trigger a PR build for master and release, and skip build/rebuild
 #        on changes in the news and .vscode folders.
-trigger:
+pr:
+  autoCancel: true
   branches:
-    include: ["master", "release", "pyui"]
+    include: ["master", "release"]
   paths:
     exclude: ["/news/1 Enhancements", "/news/2 Fixes", "/news/3 Code Health", "/.vscode"]
 
-# Not the PR build for merges to master and release.
-pr: none
+# Not the CI build for merges to master and release.
+trigger: none
 
 # Variables that are available for the entire pipeline.
 variables:

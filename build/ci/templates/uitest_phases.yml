@@ -140,13 +140,8 @@ steps:
       condition: always()
 
     - task: PublishTestResults@2
+      displayName: ${{ format('TestResults{0}', $(Agent.JobName)) }}
       inputs:
           testRunner: JUnit
           testResultsFiles: "$(Build.SourcesDirectory)/.vscode-test/reports/*.xml"
-      condition: always()
-
-    - task: PublishTestResults@2
-      inputs:
-          testRunner: JUnit
-          testResultsFiles: "**/.vscode-test/reports/*.xml"
       condition: always()

@@ -2,20 +2,24 @@ parameters:
   jobs: []
   pythonVersions: [
       {
-          "version":"3.7",
-          "excludeTags":"--tags=~@python3.6 --tags=~@python3.5 --tags=~@python2"
+          "version": "3.7",
+          "displayName": "37",
+          "excludeTags": "--tags=~@python3.6 --tags=~@python3.5 --tags=~@python2"
       },
       {
-          "version":"3.6",
-          "excludeTags":"--tags=~@python3.7 --tags=~@python3.5 --tags=~@python2"
+          "version": "3.6",
+          "displayName": "36",
+          "excludeTags": "--tags=~@python3.7 --tags=~@python3.5 --tags=~@python2"
       },
       {
-          "version":"3.5",
-          "excludeTags":"--tags=~@python3.7 --tags=~@python3.6 --tags=~@python2"
+          "version": "3.5",
+          "displayName": "35",
+          "excludeTags": "--tags=~@python3.7 --tags=~@python3.6 --tags=~@python2"
       },
       {
-          "version":"2.7",
-          "excludeTags":"--tags=~@python3.7 --tags=~@python3.5 --tags=~@python3"
+          "version": "2.7",
+          "displayName": "27",
+          "excludeTags": "--tags=~@python3.7 --tags=~@python3.5 --tags=~@python3"
       }
     ]
 
@@ -30,19 +34,19 @@ jobs:
     matrix:
       ${{ each job in parameters.jobs }}:
         ${{ each py in parameters.pythonVersions }}:
-          ${{ format('Mac{0}{1}', py.version, job.test) }}:
+          ${{ format('Mac{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "macos-10.13"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}
 
-          ${{ format('Win{0}{1}', py.version, job.test) }}:
+          ${{ format('Win{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "vs2017-win2016"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}
 
-          ${{ format('Linux{0}{1}', py.version, job.test) }}:
+          ${{ format('Linux{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "ubuntu-16.04"
             Tags: ${{ job.tags }}

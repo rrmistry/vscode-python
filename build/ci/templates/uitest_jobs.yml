@@ -39,18 +39,21 @@ jobs:
             VMImageName: "macos-10.13"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}
+            AgentJobName: ${{ format('Mac{0}{1}', py.displayName, job.test) }}
 
           ${{ format('Win{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "vs2017-win2016"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}
+            AgentJobName: ${{ format('Mac{0}{1}', py.displayName, job.test) }}
 
           ${{ format('Linux{0}{1}', py.displayName, job.test) }}:
             PythonVersion: ${{ py.version }}
             VMImageName: "ubuntu-16.04"
             Tags: ${{ job.tags }}
             ExcludeTags: ${{ py.excludeTags }}
+            AgentJobName: ${{ format('Mac{0}{1}', py.displayName, job.test) }}
 
   pool:
     vmImage: $(VMImageName)

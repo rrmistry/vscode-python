@@ -2,7 +2,10 @@
 * @wip
     * Used only for debugging purposes.
     * When debugging in VSC, only features/scenarios with @wip tag will be executed.
+* @skip
+    * Used to skip a feature/scenario.
 * @https://github.com/xxx/yyy.git
+    * Can only be used at a feature level.
     * The conents of the above repo will be used as the contents of the workspace folder.
     * Note: assume the tag is `@https://github.com/DonJayamanne/pyvscSmokeTesting.git`
         * The above repo is cloned directly into the workspace.

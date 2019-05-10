@@ -133,7 +133,7 @@ steps:
       condition: always()
 
     - task: PublishTestResults@2
-      displayName: "TestResults$(Agent.JobName)"
+      displayName: "TestResults $(Agent.JobName)"
       inputs:
           testRunner: JUnit
           testResultsFiles: "$(Build.SourcesDirectory)/.vscode-test/reports/*.xml"

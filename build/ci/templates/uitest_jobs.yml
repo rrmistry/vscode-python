@@ -1,5 +1,6 @@
 parameters:
   jobs: []
+  pythonVersions: ["3.7", "3.6", "3.5", "2.7"]
 
 
 jobs:
@@ -9,10 +10,11 @@ jobs:
     matrix:
       ${{ each job in parameters.jobs }}:
         ${{ job.test }}:
-          PythonVersion: "3.7"
-          VMImageName: "macos-10.13"
-          Tags: ${{ job.tags }}
-          Test: true
+          ${{ each pythonVersion in parameters.pythonVersions }}:
+            PythonVersion: ${{ pythonVersion }}
+            VMImageName: "macos-10.13"
+            Tags: ${{ job.tags }}
+            Test: true
 
   pool:
     vmImage: $(VMImageName)

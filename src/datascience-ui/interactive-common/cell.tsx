@@ -28,7 +28,6 @@ import { MenuBar } from './menuBar';
 import { displayOrder, richestMimetype, transforms } from './transforms';
 
 import './cell.css';
-import { IFocusable } from './mainPanelProps';
 
 interface ICellProps {
     role?: string;

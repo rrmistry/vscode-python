@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 'use strict';
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
-import * as React from 'react';
 
 import { IInteractiveWindowMapping } from '../../client/datascience/interactive-window/interactiveWindowTypes';
+import { Event } from '../react-common/event';
 import { IMainPanelState } from './mainPanelState';
 
 export interface IMainPanelHOCProps {
@@ -12,10 +12,6 @@ export interface IMainPanelHOCProps {
     testMode?: boolean;
     baseTheme: string;
     codeTheme: string;
-}
-
-export interface IFocusable {
-    focus(): void;
 }
 
 export interface IMainPanelProps extends IMainPanelHOCProps {

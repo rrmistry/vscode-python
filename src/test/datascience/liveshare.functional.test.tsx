@@ -17,8 +17,15 @@ import {
 } from '../../client/common/application/types';
 import { IFileSystem } from '../../client/common/platform/types';
 import { Commands } from '../../client/datascience/constants';
-import { ICodeWatcher, IDataScienceCommandListener, IInteractiveWindow, IInteractiveWindowProvider, IJupyterExecution } from '../../client/datascience/types';
+import {
+    ICodeWatcher,
+    IDataScienceCommandListener,
+    IInteractiveWindow,
+    IInteractiveWindowProvider,
+    IJupyterExecution
+} from '../../client/datascience/types';
 import { MainPanel } from '../../datascience-ui/history-react/MainPanel';
+import { MainPanelHOC } from '../../datascience-ui/interactive-common/mainPanelHOC';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
 import { createDocument } from './editor-integration/helpers';
 import { addMockData, CellPosition, verifyHtmlOnCell } from './interactiveWindowTestHelpers';
@@ -72,7 +79,8 @@ suite('DataScience LiveShare tests', () => {
         result.serviceManager.rebindInstance<IApplicationShell>(IApplicationShell, appShell.object);
 
         // Setup our webview panel
-        result.createWebView(() => mount(<MainPanel baseTheme='vscode-light' codeTheme='light_vs' testMode={true} skipDefault={true} />), role);
+        const HOC = MainPanelHOC(MainPanel);
+        result.createWebView(() => mount(<HOC baseTheme='vscode-light' codeTheme='light_vs' testMode={true} skipDefault={true} />), role);
 
         // Make sure the history provider and execution factory in the container is created (the extension does this on startup in the extension)
         // This is necessary to get the appropriate live share services up and running.

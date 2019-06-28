@@ -7,6 +7,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 import { Identifiers } from '../../client/datascience/constants';
+import { MainPanelHOC } from '../interactive-common/mainPanelHOC';
 import { IVsCodeApi } from '../react-common/postOffice';
 import { detectBaseTheme } from '../react-common/themeDetector';
 import { MainPanel } from './MainPanel';
@@ -14,9 +15,10 @@ import { MainPanel } from './MainPanel';
 // This special function talks to vscode from a web panel
 export declare function acquireVsCodeApi(): IVsCodeApi;
 const baseTheme = detectBaseTheme();
+const HOC = MainPanelHOC(MainPanel);
 
 // tslint:disable:no-typeof-undefined
 ReactDOM.render(
-  <MainPanel baseTheme={baseTheme} codeTheme={Identifiers.GeneratedThemeName} skipDefault={typeof acquireVsCodeApi !== 'undefined'} />,
+  <HOC baseTheme={baseTheme} codeTheme={Identifiers.GeneratedThemeName} skipDefault={typeof acquireVsCodeApi !== 'undefined'}/>,
   document.getElementById('root') as HTMLElement
 );

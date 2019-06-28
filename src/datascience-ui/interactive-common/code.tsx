@@ -5,12 +5,11 @@
 import * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import * as React from 'react';
 
+import { InputHistory } from '../interactive-common/inputHistory';
 import { getLocString } from '../react-common/locReactSide';
 import { MonacoEditor } from '../react-common/monacoEditor';
-import { InputHistory } from '../history-react/inputHistory';
 
 import './code.css';
-import { IFocusable } from './mainPanelProps';
 
 export interface ICodeProps {
     autoFocus: boolean;

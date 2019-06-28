@@ -9,7 +9,7 @@ import { IDataScienceSettings } from '../../client/common/types';
 import { CellMatcher } from '../../client/datascience/cellMatcher';
 import { concatMultilineString } from '../../client/datascience/common';
 import { Identifiers } from '../../client/datascience/constants';
-import { CellState, ICell, IMessageCell, IJupyterVariable } from '../../client/datascience/types';
+import { CellState, ICell, IJupyterVariable, IMessageCell } from '../../client/datascience/types';
 import { noop } from '../../test/core';
 import { ICellViewModel } from './cell';
 import { InputHistory } from './inputHistory';
@@ -31,7 +31,7 @@ export interface IMainPanelState {
     editorOptions: monacoEditor.editor.IEditorOptions;
     currentExecutionCount: number;
     variables: IJupyterVariable[];
-    lastVariableExecutionCount: number;
+    pendingVariableCount: number;
 }
 
 // tslint:disable-next-line: no-multiline-string
@@ -74,7 +74,7 @@ export function generateTestState(inputBlockToggled : (id: string) => void, file
                 count: 100
             }
         ],
-        lastVariableExecutionCount: 1
+        pendingVariableCount: 0
     };
 }
 

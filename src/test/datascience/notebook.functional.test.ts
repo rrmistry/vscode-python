@@ -37,7 +37,7 @@ import {
     IKnownSearchPathsForInterpreters,
     PythonInterpreter
 } from '../../client/interpreter/contracts';
-import { ICellViewModel } from '../../datascience-ui/history-react/cell';
+import { ICellViewModel } from '../../datascience-ui/interactive-common/cell';
 import { generateTestState } from '../../datascience-ui/interactive-common/mainPanelState';
 import { asyncDump } from '../common/asyncDump';
 import { sleep } from '../core';

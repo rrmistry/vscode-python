@@ -24,15 +24,17 @@ import { getSettings } from '../react-common/settingsReactSide';
 import './mainPanel.css';
 
 export class MainPanel extends React.Component<IMainPanelProps> {
+    private mainPanelRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
+    private editCellRef: React.RefObject<Cell> = React.createRef<Cell>();
 
     constructor(props: IMainPanelProps) {
         super(props);
-        this.props.focusRef = this;
+        this.props.activated(this.activated);
     }
 
     public render() {
         return (
-            <div id='main-panel' ref={this.updateSelf}>
+            <div id='main-panel' ref={this.mainPanelRef}>
                 <header id='main-panel-toolbar'>
                     {this.renderToolbarPanel(this.props.baseTheme)}
                 </header>
@@ -47,6 +49,23 @@ export class MainPanel extends React.Component<IMainPanelProps> {
                 </section>
             </div>
         );
+    }
+
+    private activated = () => {
+        // Make sure the input cell gets focus
+        if (getSettings && getSettings().allowInput) {
+            // Delay this so that we make sure the outer frame has focus first.
+            setTimeout(() => {
+                // First we have to give ourselves focus (so that focus actually ends up in the code cell)
+                if (this.mainPanelRef && this.mainPanelRef.current) {
+                    this.mainPanelRef.current.focus({preventScroll: true});
+                }
+
+                if (this.editCellRef && this.editCellRef.current) {
+                    this.editCellRef.current.giveFocus();
+                }
+            }, 100);
+        }
     }
 
     private renderToolbarPanel(baseTheme: string) {
@@ -105,6 +124,7 @@ export class MainPanel extends React.Component<IMainPanelProps> {
                         monacoTheme={this.props.value.monacoTheme}
                         openLink={this.openLink}
                         expandImage={noop}
+                        ref={this.editCellRef}
                     />
                 </ErrorBoundary>
             </div>
@@ -157,6 +177,8 @@ export class MainPanel extends React.Component<IMainPanelProps> {
 
     private getVariableProps = (baseTheme: string): IVariablePanelProps => {
        return {
+        variables: this.props.value.variables,
+        pendingVariableCount: this.props.value.pendingVariableCount,
         busy: this.props.value.busy,
         showDataExplorer: this.showDataViewer,
         skipDefault: this.props.skipDefault,
@@ -177,10 +199,6 @@ export class MainPanel extends React.Component<IMainPanelProps> {
 
     private openLink = (uri: monacoEditor.Uri) => {
         this.sendMessage(InteractiveWindowMessages.OpenLink, uri.toString());
-    }
-
-    private saveEditCellRef = (ref: Cell | null) => {
-        this.editCellRef = ref;
     }
 
     private getNonEditCellVMs() : ICellViewModel [] {
@@ -239,17 +257,8 @@ export class MainPanel extends React.Component<IMainPanelProps> {
         this.sendMessage(InteractiveWindowMessages.Export, cellContents);
     }
 
-    private updateSelf = (r: HTMLDivElement) => {
-        this.mainPanel = r;
-    }
-
-
-    private isCellSupported(cell: ICell) : boolean {
-        return !this.props.testMode || cell.data.cell_type !== 'messages';
-    }
-
     private getInputExecutionCount = () : number => {
-        return this.state.currentExecutionCount + 1;
+        return this.props.value.currentExecutionCount + 1;
     }
 
     private variableExplorerToggled = (open: boolean) => {

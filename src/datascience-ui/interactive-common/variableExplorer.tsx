@@ -23,6 +23,8 @@ import './variableExplorerGrid.less';
 interface IVariableExplorerProps {
     baseTheme: string;
     skipDefault?: boolean;
+    variables: IJupyterVariable[];
+    pendingVariableCount: number;
     refreshVariables(): void;
     showDataExplorer(targetVariable: string, numberOfColumns: number): void;
     variableExplorerToggled(open: boolean): void;
@@ -59,7 +61,6 @@ interface IGridRow {
 
 export class VariableExplorer extends React.Component<IVariableExplorerProps, IVariableExplorerState> {
     private divRef: React.RefObject<HTMLDivElement>;
-    private variableFetchCount: number;
 
     constructor(prop: IVariableExplorerProps) {
         super(prop);
@@ -106,9 +107,10 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
                 formatter: <VariableExplorerButtonCellFormatter showDataExplorer={this.props.showDataExplorer} baseTheme={this.props.baseTheme} />
             }
         ];
+        const gridRows = !this.props.skipDefault ? this.generateDummyVariables() : this.parseVariables(this.props.variables);
         this.state = { open: false,
                         gridColumns: columns,
-                        gridRows: !this.props.skipDefault ? this.generateDummyVariables() : [],
+                        gridRows,
                         gridHeight: 200,
                         height: 0,
                         fontSize: 14,
@@ -116,7 +118,6 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
                         sortDirection: 'NONE'};
 
         this.divRef = React.createRef<HTMLDivElement>();
-        this.variableFetchCount = 0;
     }
 
     public render() {
@@ -171,10 +172,50 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
         }
     }
 
-    // New variable data passed in via a ref
-    // Help to keep us independent of main interactive window state if we choose to break out the variable explorer
-    public newVariablesData(newVariables: IJupyterVariable[]) {
-        const newGridRows = newVariables.map(newVar => {
+    public componentDidUpdate(prevProps: Readonly<IVariableExplorerProps>, _prevState: Readonly<IVariableExplorerState>, _snapshot?: {}) {
+        // Might need to reparse
+        const needReparse = !this.variablesSame(prevProps.variables, this.props.variables);
+        if (needReparse && this.props.pendingVariableCount === 0) {
+            const newRows = this.parseVariables(this.props.variables);
+            this.setState({
+                gridRows: this.internalSortRows(newRows, this.state.sortColumn, this.state.sortDirection)
+            });
+        }
+    }
+
+    public sortRows = (sortColumn: string | number, sortDirection: string) => {
+        this.setState({
+            sortColumn,
+            sortDirection,
+            gridRows: this.internalSortRows(this.state.gridRows, sortColumn, sortDirection)
+        });
+    }
+
+    private variablesSame(a: IJupyterVariable[], b: IJupyterVariable[]) {
+        if (a === b) { return true; }
+        if (a === null || b === null) { return false; }
+        if (a.length !== b.length) { return false; }
+        for (let i = 0; i < a.length; i += 1) {
+            const aVar = a[i];
+            const bVar = b[i];
+            if (aVar.value !== bVar.value) { return false; }
+            if (aVar.name !== bVar.name) { return false; }
+            if (aVar.shape !== bVar.shape) { return false; }
+            if (aVar.size !== bVar.size) { return false; }
+            if (aVar.value !== bVar.value) { return false; }
+            if (aVar.value !== bVar.value) { return false; }
+        }
+    }
+
+    private parseVariables(newVariables: IJupyterVariable[]) {
+        return newVariables.map(newVar => {
+            let newSize = '';
+            if (newVar.shape && newVar.shape !== '') {
+                newSize = newVar.shape;
+            } else if (newVar.count) {
+                newSize = newVar.count.toString();
+            }
+
             return {
                 buttons: {
                     name: newVar.name,
@@ -183,58 +224,13 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
                 },
                 name: newVar.name,
                 type: newVar.type,
-                size: '',
-                value: getLocString('DataScience.variableLoadingValue', 'Loading...')
+                size: newSize,
+                value: newVar.value ? newVar.value : getLocString('DataScience.variableLoadingValue', 'Loading...')
             };
         });
-
-        this.setState({ gridRows: newGridRows});
-        this.variableFetchCount = newGridRows.length;
     }
 
-    // Update the value of a single variable already in our list
-    public newVariableData(newVariable: IJupyterVariable) {
-        const newGridRows = this.state.gridRows.slice();
-        for (let i = 0; i < newGridRows.length; i = i + 1) {
-            if (newGridRows[i].name === newVariable.name) {
-
-                // For object with shape, use that for size
-                // for object with length use that for size
-                // If it doesn't have either, then just leave it out
-                let newSize = '';
-                if (newVariable.shape && newVariable.shape !== '') {
-                    newSize = newVariable.shape;
-                } else if (newVariable.count) {
-                    newSize = newVariable.count.toString();
-                }
-
-                // Also use the shape to compute the number of columns. Necessary
-                // when showing a data viewer
-                const numberOfColumns = this.getColumnCountFromShape(newVariable.shape);
-
-                const newGridRow: IGridRow = {...newGridRows[i],
-                    buttons: {
-                        ...newGridRows[i].buttons,
-                        numberOfColumns
-                    },
-                    value: newVariable.value,
-                    size: newSize};
-
-                newGridRows[i] = newGridRow;
-            }
-        }
-
-        // Update that we have retreived a new variable
-        // When we hit zero we have all the vars and can sort our values
-        this.variableFetchCount = this.variableFetchCount - 1;
-        if (this.variableFetchCount === 0) {
-            this.setState({ gridRows: this.internalSortRows(newGridRows, this.state.sortColumn, this.state.sortDirection) });
-        } else {
-            this.setState({ gridRows: newGridRows });
-        }
-    }
-
-    public toggleInputBlock = () => {
+    private toggleInputBlock = () => {
         this.setState({open: !this.state.open});
 
         // If we toggle open request a data refresh
@@ -244,14 +240,6 @@ export class VariableExplorer extends React.Component<IVariableExplorerProps, IV
 
         // Notify of the toggle, reverse it as the state is not updated yet
         this.props.variableExplorerToggled(!this.state.open);
-    }
-
-    public sortRows = (sortColumn: string | number, sortDirection: string) => {
-        this.setState({
-            sortColumn,
-            sortDirection,
-            gridRows: this.internalSortRows(this.state.gridRows, sortColumn, sortDirection)
-        });
     }
 
     private generateDummyVariables() : IGridRow[] {

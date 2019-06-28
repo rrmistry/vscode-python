@@ -21,13 +21,14 @@ import {
     IJupyterVariable,
     IJupyterVariablesResponse
 } from '../../client/datascience/types';
+import { EventEmitter } from '../react-common/event';
 import { IMessageHandler, PostOffice } from '../react-common/postOffice';
 import { getSettings, updateSettings } from '../react-common/settingsReactSide';
 import { StyleInjector } from '../react-common/styleInjector';
 import { ICellViewModel } from './cell';
 import { InputHistory } from './inputHistory';
 import { IntellisenseProvider } from './intellisenseProvider';
-import { IMainPanelHOCProps, IMainPanelProps, IFocusable } from './mainPanelProps';
+import { IMainPanelHOCProps, IMainPanelProps } from './mainPanelProps';
 import { createCellVM, createEditableCellVM, extractInputText, generateTestState, IMainPanelState } from './mainPanelState';
 import { initializeTokenizer, registerMonacoLanguage } from './tokenizer';
 
@@ -43,7 +44,7 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
     private tmlangugePromise: Deferred<string> | undefined;
     private monacoIdToCellId: Map<string, string> = new Map<string, string>();
     private styleInjectorRef: React.RefObject<StyleInjector> = React.createRef<StyleInjector>();
-    private focusRef: React.RefObject<IFocusable> = React.createRef<IFocusable>();
+    private activatedEventEmitter: EventEmitter<void> = new EventEmitter<void>();
 
     // tslint:disable-next-line:max-func-body-length
     constructor(props: IMainPanelHOCProps, _state: IMainPanelState) {
@@ -60,8 +61,8 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
             editCellVM: getSettings && getSettings().allowInput ? createEditableCellVM(1) : undefined,
             editorOptions: this.computeEditorOptions(),
             currentExecutionCount: 0,
-            lastVariableExecutionCount: 0,
-            variables: []
+            variables: [],
+            pendingVariableCount: 0
         };
 
         // Add test state if necessary
@@ -145,7 +146,7 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
                     readOnlyCodeCreated={this.readOnlyCodeCreated}
                     editableCodeCreated={this.editableCodeCreated}
                     codeChange={this.codeChange}
-                    focusRef={this.focusRef}
+                    activated={this.activatedEventEmitter.event}
                 />
             </div>
         );
@@ -308,10 +309,8 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
     }
 
     private activate() {
-        // Make sure the input cell gets focus
-        if (getSettings && getSettings().allowInput && this.focusRef.current) {
-            this.focusRef.current.focus();
-        }
+        // Pass this onto sub components
+        this.activatedEventEmitter.fire();
     }
 
     // tslint:disable-next-line:no-any
@@ -334,7 +333,7 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
         }
     }
 
-    private sendMessage<M extends IInteractiveWindowMapping, T extends keyof M>(type: T, payload?: M[T]) {
+    private sendMessage = <M extends IInteractiveWindowMapping, T extends keyof M>(type: T, payload?: M[T]) => {
         this.postOffice.sendMessage<M, T>(type, payload);
     }
 
@@ -707,14 +706,15 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
         if (payload) {
             const variable = payload as IJupyterVariable;
 
-            // Only send the updated variable data if we are on the same execution count as when we requsted it
+            // Only send the updated variable data if we are on the same execution count as when we requested it
             if (variable && variable.executionCount !== undefined && variable.executionCount === this.state.currentExecutionCount) {
                 const stateVariable = this.state.variables.findIndex(v => v.name === variable.name);
                 if (stateVariable >= 0) {
                     const newState = [...this.state.variables];
                     newState.splice(stateVariable, 1, variable);
                     this.setState({
-                        variables: newState
+                        variables: newState,
+                        pendingVariableCount: Math.max(0, this.state.pendingVariableCount - 1)
                     });
                 }
             }
@@ -731,7 +731,7 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
             if (variablesResponse.executionCount === this.state.currentExecutionCount) {
                 this.setState({
                     variables: variablesResponse.variables,
-                    lastVariableExecutionCount: variablesResponse.executionCount
+                    pendingVariableCount: variablesResponse.variables.length
                 });
 
                 // Now put out a request for all of the sub values for the variables
@@ -825,4 +825,4 @@ class MainPanel extends React.Component<IMainPanelHOCProps, IMainPanelState> imp
             this.tmlangugePromise.resolve(undefined);
         }
     }
-}
+};

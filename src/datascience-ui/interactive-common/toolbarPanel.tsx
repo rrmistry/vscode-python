@@ -8,7 +8,6 @@ import * as React from 'react';
 import { Image, ImageName } from '../react-common/image';
 import { ImageButton } from '../react-common/imageButton';
 import { getLocString } from '../react-common/locReactSide';
-import { getSettings } from '../react-common/settingsReactSide';
 import { MenuBar } from './menuBar';
 
 export interface IToolbarPanelProps {
@@ -19,7 +18,6 @@ export interface IToolbarPanelProps {
     canUndo: boolean;
     canRedo: boolean;
     skipDefault?: boolean;
-    addMarkdown(): void;
     collapseAll(): void;
     expandAll(): void;
     export(): void;
@@ -64,18 +62,8 @@ export class ToolbarPanel extends React.Component<IToolbarPanelProps> {
                     <ImageButton baseTheme={this.props.baseTheme} onClick={this.props.collapseAll} disabled={!this.props.canCollapseAll} tooltip={getLocString('DataScience.collapseAll', 'Collapse all cell inputs')}>
                         <Image baseTheme={this.props.baseTheme} class='image-button-image' image={ImageName.CollapseAll}/>
                     </ImageButton>
-                    {this.renderExtraButtons()}
                 </MenuBar>
             </div>
         );
-    }
-
-    private renderExtraButtons = () => {
-        if (!this.props.skipDefault) {
-            const baseTheme = getSettings().ignoreVscodeTheme ? 'vscode-light' : this.props.baseTheme;
-            return <ImageButton baseTheme={baseTheme} onClick={this.props.addMarkdown} tooltip='Add Markdown Test'>M</ImageButton>;
-        }
-
-        return null;
     }
 }

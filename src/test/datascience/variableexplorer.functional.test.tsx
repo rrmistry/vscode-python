@@ -10,7 +10,7 @@ import { Disposable } from 'vscode';
 import { InteractiveWindowMessageListener } from '../../client/datascience/interactive-window/interactiveWindowMessageListener';
 import { InteractiveWindowMessages } from '../../client/datascience/interactive-window/interactiveWindowTypes';
 import { IInteractiveWindow, IInteractiveWindowProvider, IJupyterVariable } from '../../client/datascience/types';
-import { VariableExplorer } from '../../datascience-ui/history-react/variableExplorer';
+import { VariableExplorer } from '../../datascience-ui/interactive-common/variableExplorer';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
 import { addCode, runMountedTest } from './interactiveWindowTestHelpers';
 import { waitForUpdate } from './reactHelpers';

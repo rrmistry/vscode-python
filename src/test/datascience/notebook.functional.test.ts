@@ -38,7 +38,7 @@ import {
     PythonInterpreter
 } from '../../client/interpreter/contracts';
 import { ICellViewModel } from '../../datascience-ui/history-react/cell';
-import { generateTestState } from '../../datascience-ui/history-react/mainPanelState';
+import { generateTestState } from '../../datascience-ui/interactive-common/mainPanelState';
 import { asyncDump } from '../common/asyncDump';
 import { sleep } from '../core';
 import { DataScienceIocContainer } from './dataScienceIocContainer';

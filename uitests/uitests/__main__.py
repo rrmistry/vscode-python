@@ -149,6 +149,7 @@ def test(destination, channel, vsix, behave_options, **kwargs):
     )
 
     # Change directory for behave to work correctly.
+    curdir = os.path.dirname(os.path.realpath(__file__))
     os.chdir(pathlib.Path(__file__).parent)
 
     # Selenium and other packages write to stderr & so does default logging output.
@@ -158,11 +159,10 @@ def test(destination, channel, vsix, behave_options, **kwargs):
     # Write exit code to a text file, so we can read it and fail CI in a separate task (fail if file exists).
     # CI doesn't seem to fail based on exit codes.
     # We can't fail on writing to stderr either as python logs stuff there & other errors that can be ignored are written there.
-    curdir = os.path.dirname(os.path.realpath(__file__))
-    failure_file = os.path.join(curdir, 'uitest_failed.txt')
+    failure_file = os.path.join(curdir, "uitest_failed.txt")
 
     if exit_code > 0:
-        with open(failure_file, 'w') as fp:
+        with open(failure_file, "w") as fp:
             fp.write(str(exit_code))
         sys.stderr.write("Behave tests failed")
         sys.stderr.flush()

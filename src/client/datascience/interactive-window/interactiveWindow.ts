@@ -24,15 +24,13 @@ import {
 import { CancellationError } from '../../common/cancellation';
 import { EXTENSION_ROOT_DIR, PYTHON_LANGUAGE } from '../../common/constants';
 import { ContextKey } from '../../common/contextKey';
-import { IInstallationChannelManager } from '../../common/installer/types';
 import { traceInfo, traceWarning } from '../../common/logger';
 import { IFileSystem } from '../../common/platform/types';
-import { IConfigurationService, IDisposableRegistry, ILogger, Product } from '../../common/types';
+import { IConfigurationService, IDisposableRegistry, ILogger } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { StopWatch } from '../../common/utils/stopWatch';
 import { IInterpreterService, PythonInterpreter } from '../../interpreter/contracts';
-import { IServiceContainer } from '../../ioc/types';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { generateCellRanges } from '../cellFactory';
 import { EditorContexts, Identifiers, Telemetry } from '../constants';
@@ -118,8 +116,7 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
         @inject(IDataViewerProvider) private dataExplorerProvider: IDataViewerProvider,
         @inject(IJupyterVariables) private jupyterVariables: IJupyterVariables,
         @inject(INotebookImporter) private jupyterImporter: INotebookImporter,
-        @inject(IJupyterDebugger) private jupyterDebugger: IJupyterDebugger,
-        @inject(IServiceContainer) protected serviceContainer: IServiceContainer
+        @inject(IJupyterDebugger) private jupyterDebugger: IJupyterDebugger
     ) {
         super(
             configuration,
@@ -1199,50 +1196,23 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
     }
 
     private load = async (): Promise<void> => {
+        // Status depends upon if we're about to connect to existing server or not.
+        const status = (await this.jupyterExecution.getServer(await this.interactiveWindowProvider.getNotebookOptions())) ?
+            this.setStatus(localize.DataScience.connectingToJupyter()) : this.setStatus(localize.DataScience.startingJupyter());
+
         // Check to see if we support ipykernel or not
         try {
             const usable = await this.checkUsable();
             if (!usable) {
                 // Not loading anymore
+                status.dispose();
                 this.dispose();
 
-                const response = await this.applicationShell.showInformationMessage(
-                    localize.DataScience.jupyterNotSupported(),
-                    localize.DataScience.jupyterInstall(),
-                    localize.DataScience.notebookCheckForImportNo());
-
-                if (response === localize.DataScience.jupyterInstall()) {
-                    const channels = this.serviceContainer.get<IInstallationChannelManager>(IInstallationChannelManager);
-                    const installer = await channels.getInstallationChannel(Product.jupyter);
-
-                    if (!installer) {
-                        // Indicate failing.
-                        throw new JupyterInstallError(localize.DataScience.jupyterInstallError(), localize.DataScience.pythonInteractiveHelpLink());
-                    }
-
-                    const moduleName = 'jupyter';
-                    const logger = this.serviceContainer.get<ILogger>(ILogger);
-                    await installer.installModule(moduleName)
-                        .catch(logger.logError.bind(logger, `Error in installing the module '${moduleName}'`));
-
-                    await this.loadJupyterServer();
-                } else {
-                    throw new JupyterInstallError(localize.DataScience.jupyterNotSupported(), localize.DataScience.pythonInteractiveHelpLink());
-                }
-            } else {
-                // Status depends upon if we're about to connect to existing server or not.
-                const status = (await this.jupyterExecution.getServer(await this.interactiveWindowProvider.getNotebookOptions())) ?
-                    this.setStatus(localize.DataScience.connectingToJupyter()) : this.setStatus(localize.DataScience.startingJupyter());
-
-                try {
-                    // Then load the jupyter server
-                    await this.loadJupyterServer();
-                } catch (e) {
-                    throw e;
-                } finally {
-                    status.dispose();
-                }
+                // Indicate failing.
+                throw new JupyterInstallError(localize.DataScience.jupyterNotSupported(), localize.DataScience.pythonInteractiveHelpLink());
             }
+            // Then load the jupyter server
+            await this.loadJupyterServer();
         } catch (e) {
             if (e instanceof JupyterSelfCertsError) {
                 // On a self cert error, warn the user and ask if they want to change the setting
@@ -1262,6 +1232,8 @@ export class InteractiveWindow extends WebViewHost<IInteractiveWindowMapping> im
             } else {
                 throw e;
             }
+        } finally {
+            status.dispose();
         }
     }
 

@@ -5,11 +5,13 @@ import { inject, injectable } from 'inversify';
 import { CodeLens, Command, Position, Range, Selection, TextDocument, TextEditor, TextEditorRevealType } from 'vscode';
 
 import { IApplicationShell, IDocumentManager } from '../../common/application/types';
+import { IInstallationChannelManager } from '../../common/installer/types';
 import { IFileSystem } from '../../common/platform/types';
-import { IConfigurationService, IDataScienceSettings, ILogger } from '../../common/types';
+import { IConfigurationService, IDataScienceSettings, ILogger, Product } from '../../common/types';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { StopWatch } from '../../common/utils/stopWatch';
+import { IServiceContainer } from '../../ioc/types';
 import { captureTelemetry } from '../../telemetry';
 import { ICodeExecutionHelper } from '../../terminals/types';
 import { generateCellRanges } from '../cellFactory';
@@ -27,13 +29,14 @@ export class CodeWatcher implements ICodeWatcher {
     private cachedSettings: IDataScienceSettings | undefined;
 
     constructor(@inject(IApplicationShell) private applicationShell: IApplicationShell,
-                @inject(ILogger) private logger: ILogger,
-                @inject(IInteractiveWindowProvider) private interactiveWindowProvider : IInteractiveWindowProvider,
-                @inject(IFileSystem) private fileSystem: IFileSystem,
-                @inject(IConfigurationService) private configService: IConfigurationService,
-                @inject(IDocumentManager) private documentManager : IDocumentManager,
-                @inject(ICodeExecutionHelper) private executionHelper: ICodeExecutionHelper
-        ) {
+        @inject(ILogger) private logger: ILogger,
+        @inject(IInteractiveWindowProvider) private interactiveWindowProvider: IInteractiveWindowProvider,
+        @inject(IFileSystem) private fileSystem: IFileSystem,
+        @inject(IConfigurationService) private configService: IConfigurationService,
+        @inject(IDocumentManager) private documentManager: IDocumentManager,
+        @inject(ICodeExecutionHelper) private executionHelper: ICodeExecutionHelper,
+        @inject(IServiceContainer) protected serviceContainer: IServiceContainer
+    ) {
     }
 
     public setDocument(document: TextDocument) {
@@ -86,7 +89,7 @@ export class CodeWatcher implements ICodeWatcher {
         return this.version;
     }
 
-    public getCachedSettings() : IDataScienceSettings | undefined {
+    public getCachedSettings(): IDataScienceSettings | undefined {
         return this.cachedSettings;
     }
 
@@ -172,13 +175,13 @@ export class CodeWatcher implements ICodeWatcher {
     }
 
     @captureTelemetry(Telemetry.RunSelectionOrLine)
-    public async runSelectionOrLine(activeEditor : TextEditor | undefined) {
+    public async runSelectionOrLine(activeEditor: TextEditor | undefined) {
         if (this.document && activeEditor &&
             this.fileSystem.arePathsSame(activeEditor.document.fileName, this.document.fileName)) {
             // Get just the text of the selection or the current line if none
             const codeToExecute = await this.executionHelper.getSelectedTextToExecute(activeEditor);
             if (!codeToExecute) {
-                return ;
+                return;
             }
             const normalizedCode = await this.executionHelper.normalizeLines(codeToExecute!);
             if (!normalizedCode || normalizedCode.trim().length === 0) {
@@ -213,7 +216,7 @@ export class CodeWatcher implements ICodeWatcher {
     }
 
     @captureTelemetry(Telemetry.RunCell)
-    public runCell(range: Range) : Promise<void> {
+    public runCell(range: Range): Promise<void> {
         if (!this.documentManager.activeTextEditor || !this.documentManager.activeTextEditor.document) {
             return Promise.resolve();
         }
@@ -224,7 +227,7 @@ export class CodeWatcher implements ICodeWatcher {
     }
 
     @captureTelemetry(Telemetry.RunCurrentCell)
-    public runCurrentCell() : Promise<void> {
+    public runCurrentCell(): Promise<void> {
         if (!this.documentManager.activeTextEditor || !this.documentManager.activeTextEditor.document) {
             return Promise.resolve();
         }
@@ -243,7 +246,7 @@ export class CodeWatcher implements ICodeWatcher {
         return this.runMatchingCell(this.documentManager.activeTextEditor.selection, true);
     }
 
-    public async addEmptyCellToBottom() : Promise<void> {
+    public async addEmptyCellToBottom(): Promise<void> {
         const editor = this.documentManager.activeTextEditor;
         if (editor) {
             editor.edit((editBuilder) => {
@@ -255,7 +258,7 @@ export class CodeWatcher implements ICodeWatcher {
         }
     }
 
-    private async addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean) : Promise<void> {
+    private async addCode(code: string, file: string, line: number, editor?: TextEditor, debug?: boolean): Promise<void> {
         try {
             const stopWatch = new StopWatch();
             const activeInteractiveWindow = await this.interactiveWindowProvider.getOrCreateActive();
@@ -298,11 +301,11 @@ export class CodeWatcher implements ICodeWatcher {
         }
     }
 
-    private getCurrentCellLens(pos: Position) : CodeLens | undefined {
+    private getCurrentCellLens(pos: Position): CodeLens | undefined {
         return this.codeLenses.find(l => l.range.contains(pos) && l.command !== undefined && l.command.command === Commands.RunCell);
     }
 
-    private getNextCellLens(pos: Position) : CodeLens | undefined {
+    private getNextCellLens(pos: Position): CodeLens | undefined {
         const currentIndex = this.codeLenses.findIndex(l => l.range.contains(pos) && l.command !== undefined && l.command.command === Commands.RunCell);
         if (currentIndex >= 0) {
             return this.codeLenses.find((l: CodeLens, i: number) => l.command !== undefined && l.command.command === Commands.RunCell && i > currentIndex);
@@ -318,17 +321,35 @@ export class CodeWatcher implements ICodeWatcher {
     }
 
     // tslint:disable-next-line:no-any
-    private handleError = (err : any) => {
+    private handleError = (err: any) => {
         if (err instanceof JupyterInstallError) {
-            const jupyterError = err as JupyterInstallError;
+            this.applicationShell.showInformationMessage(
+                localize.DataScience.jupyterNotSupported(),
+                localize.DataScience.jupyterInstall(),
+                localize.DataScience.notebookCheckForImportNo())
+                .then(response => {
+                    if (response === localize.DataScience.jupyterInstall()) {
+                        const channels = this.serviceContainer.get<IInstallationChannelManager>(IInstallationChannelManager);
+                        return channels.getInstallationChannel(Product.jupyter);
+                    } else {
+                        const jupyterError = err as JupyterInstallError;
 
-            // This is a special error that shows a link to open for more help
-            this.applicationShell.showErrorMessage(jupyterError.message, jupyterError.actionTitle).then(v => {
-                // User clicked on the link, open it.
-                if (v === jupyterError.actionTitle) {
-                    this.applicationShell.openUrl(jupyterError.action);
-                }
-            });
+                        // This is a special error that shows a link to open for more help
+                        this.applicationShell.showErrorMessage(jupyterError.message, jupyterError.actionTitle).then(v => {
+                            // User clicked on the link, open it.
+                            if (v === jupyterError.actionTitle) {
+                                this.applicationShell.openUrl(jupyterError.action);
+                            }
+                        });
+                    }
+                }).then(inst => {
+                    if (inst) {
+                        inst.installModule('jupyter')
+                            .catch(() => this.applicationShell.showErrorMessage(
+                                localize.DataScience.jupyterInstallError(),
+                                localize.DataScience.pythonInteractiveHelpLink()));
+                    }
+                });
         } else if (err instanceof JupyterSelfCertsError) {
             // Don't show the message for self cert errors
             noop();

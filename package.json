@@ -2396,7 +2396,7 @@
         "json-loader": "^0.5.7",
         "less": "^3.9.0",
         "less-loader": "^5.0.0",
-        "loader-utils": "^1.1.0",
+        "loader-utils": "^1.4.2",
         "mocha": "^6.1.4",
         "mocha-junit-reporter": "^1.17.0",
         "mocha-multi-reporters": "^1.1.7",
